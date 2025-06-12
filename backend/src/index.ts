@@ -1,21 +1,64 @@
 import { WebSocketServer } from "ws";
+import { randomUUID } from "crypto";
+import { GameLoop } from "./engine/GameLoop";
 
 const wss = new WebSocketServer({ port: 3000 });
+const players = new Map(); // playerId => { x, y, color, ws }
+
+// Kolory graczy do wyboru
+const COLORS = ["blue", "red", "green", "orange", "purple"];
+
+console.log("🎮 Serwer wystartował na porcie 3000");
 
 wss.on("connection", (ws) => {
-  ws.on("message", (data) => {
-    console.log(`Otrzymano wiadomość od gracza: ${data}`);
-  });
+  const id = randomUUID();
+  const x = Math.floor(Math.random() * 32);
+  const y = Math.floor(Math.random() * 32);
+  const color = COLORS[players.size % COLORS.length];
+
+  players.set(id, { x, y, color, ws });
+
+  console.log(`🧍 Gracz ${id} połączony na (${x},${y})`);
+
+  ws.send(
+    JSON.stringify({
+      type: "welcome",
+      id,
+    })
+  );
 
   ws.on("close", () => {
-    console.log(`Gracz rozłączony`);
+    console.log(`❌ Gracz ${id} rozłączony`);
+    players.delete(id);
+  });
+
+  ws.on("message", (msg) => {
+    console.log(`📨 ${id}: ${msg}`);
   });
 });
 
-setInterval(() => {
-  wss.clients.forEach((client) => {
-    if (client.readyState === 1) {
-      client.send("tesr");
-    }
+const loop = new GameLoop(50, () => {
+  const allPlayers = [];
+
+  for (const [id, player] of players) {
+    allPlayers.push({
+      id,
+      x: player.x,
+      y: player.y,
+      color: player.color,
+    });
+  }
+
+  const payload = JSON.stringify({
+    type: "state",
+    players: allPlayers,
   });
-}, 50);
+
+  for (const player of players.values()) {
+    if (player.ws.readyState === 1) {
+      player.ws.send(payload);
+    }
+  }
+});
+
+loop.start();
