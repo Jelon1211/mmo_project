@@ -1,8 +1,10 @@
 import { drawPlayers } from "../game/darwPlayers";
 import { drawGrid } from "../game/drawGrid";
 import { connectToServer } from "../network/socket";
+import { WebSocketClient } from "../network/socket__";
 
 export function setupUI() {
+  const webSocketInstance: WebSocketClient = WebSocketClient.getInstance();
   const app = document.querySelector<HTMLDivElement>("#app")!;
   app.innerHTML = `
     <h1>Gra Canvas – wielu graczy</h1>
@@ -16,12 +18,8 @@ export function setupUI() {
   canvas.width = 32 * 32;
   canvas.height = 32 * 32;
 
-  const logDiv = document.getElementById("log")!;
   const log = (msg: string) => {
     console.log(msg);
-    const p = document.createElement("p");
-    p.textContent = msg;
-    logDiv.appendChild(p);
   };
 
   document.getElementById("startBtn")?.addEventListener("click", () => {

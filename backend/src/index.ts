@@ -37,7 +37,7 @@ wss.on("connection", (ws) => {
   });
 });
 
-const loop = new GameLoop(50, () => {
+const loop = new GameLoop(2000, () => {
   const allPlayers = [];
 
   for (const [id, player] of players) {
