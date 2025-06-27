@@ -1,32 +1,54 @@
-export function connectToServer(
-  log: (msg: string) => void,
-  onStateUpdate: (players: { x: number; y: number; color: string }[]) => void
-) {
-  const ws = new WebSocket("ws://localhost:3000");
+export class WebSocketClient {
+  private static instance: WebSocketClient;
+  private socket: WebSocket;
+  public isConnected: boolean = false;
 
-  ws.onopen = () => {
-    log("✅ Połączono z WebSocket");
-  };
+  private constructor(url: string) {
+    this.socket = new WebSocket(url);
+    this.init();
+  }
 
-  ws.onmessage = (event) => {
-    try {
-      const msg = JSON.parse(event.data);
-
-      if (msg.type === "welcome") {
-        log(`🎉 Twój ID: ${msg.id}`);
-      }
-
-      if (msg.type === "state") {
-        onStateUpdate(msg.players);
-      }
-    } catch (e) {
-      console.error("Błąd parsowania wiadomości:", e);
+  public static getInstance(): WebSocketClient {
+    if (!WebSocketClient.instance) {
+      WebSocketClient.instance = new WebSocketClient("ws://localhost:3000");
     }
-  };
 
-  ws.onclose = () => log("❌ Połączenie zakończone");
-  ws.onerror = (err) => {
-    log("⚠️ Błąd WebSocket");
-    console.error(err);
-  };
+    return WebSocketClient.instance;
+  }
+
+  private init(): void {
+    this.socket.onopen = () => {
+      this.onOpenConnection();
+      this.isConnected = true;
+    };
+
+    this.socket.onmessage = () => {
+      this.onMessage();
+    };
+
+    this.socket.onclose = () => {
+      this.onCloseConnection();
+      this.isConnected = false;
+    };
+
+    this.socket.onerror = () => {
+      this.onError();
+    };
+  }
+
+  private onOpenConnection(): void {
+    console.log("✅ Połączono z WebSocket");
+  }
+
+  private onMessage(): void {
+    console.log("Message!");
+  }
+
+  private onCloseConnection(): void {
+    console.log("❌ Połączenie zakończone");
+  }
+
+  private onError(): void {
+    console.log("⚠️ Błąd WebSocket");
+  }
 }

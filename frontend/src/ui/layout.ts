@@ -1,14 +1,13 @@
 import { drawPlayers } from "../game/darwPlayers";
 import { drawGrid } from "../game/drawGrid";
-import { connectToServer } from "../network/socket";
-import { WebSocketClient } from "../network/socket__";
+import { WebSocketClient } from "../network/socket";
 
 export function setupUI() {
   const webSocketInstance: WebSocketClient = WebSocketClient.getInstance();
   const app = document.querySelector<HTMLDivElement>("#app")!;
   app.innerHTML = `
     <h1>Gra Canvas – wielu graczy</h1>
-    <button id="startBtn">Start</button>
+    <button id="startBtn">Start</button
     <div id="log"></div>
     <canvas id="canvas"></canvas>
   `;
